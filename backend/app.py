@@ -6,17 +6,16 @@ import jwt
 import datetime 
 
 app = Flask(__name__)
-CORS(app)  # Para permitir peticiones desde tu frontend React.
+CORS(app)
 
-# Configura aquí tu conexión a la base de datos
 db_config = {
     'host': 'localhost',
     'user': 'root',
-    'password': 'justsendPruebas12',
+    'password': 'anyPassword123',
     'database': 'weather_app'
 }
 
-SECRET_KEY = "thisIsJustATesting241"
+SECRET_KEY = "anySecretKey123"
 
 def get_db_connection():
     """Crea y retorna una conexión a la base de datos MySQL."""
@@ -29,7 +28,7 @@ def get_db_connection():
 
 @app.route('/')
 def home():
-    return 'API Flask funcionando correctamente'
+    return 'Flask API working correctly'
 
 # ------------------------------------------------------------------
 # Ruta para registrar un usuario
@@ -41,7 +40,7 @@ def register():
     password = data.get('password')
 
     if not email or not password:
-        return jsonify({'message': 'Email y password son requeridos'}), 400
+        return jsonify({'message': 'Email and password required'}), 400
 
     # Encriptamos la contraseña antes de guardarla
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
@@ -58,7 +57,7 @@ def register():
         conn.commit()
         
         user_id = cursor.lastrowid
-        return jsonify({'message': 'Usuario registrado exitosamente', 'user_id': user_id}), 201
+        return jsonify({'message': 'User successfully registered', 'user_id': user_id}), 201
     except mysql.connector.Error as err:
         return jsonify({'message': f'Error when registering the user: {err}'}), 500
     finally:
@@ -75,7 +74,7 @@ def login():
     password = data.get('password')
 
     if not email or not password:
-        return jsonify({'message': 'Email y password son requeridos'}), 400
+        return jsonify({'message': 'Email and password required'}), 400
 
     try:
         conn = get_db_connection()
@@ -87,7 +86,7 @@ def login():
         user = cursor.fetchone()
         
         if not user:
-            return jsonify({'message': 'Usuario no encontrado'}), 404
+            return jsonify({'message': 'User not found'}), 404
         
         # Verificar la contraseña
         stored_password = user['password'].encode('utf-8')  # La que está en la DB
@@ -101,7 +100,7 @@ def login():
 
             # Contraseña correcta
             return jsonify({
-                'message': 'Login exitoso',
+                'message': 'Successful login',
                 'token': token,
                 'user': {
                     'id': user['idusers'],
@@ -110,9 +109,9 @@ def login():
                 }
             }), 200
         else:
-            return jsonify({'message': 'Contraseña incorrecta'}), 401
+            return jsonify({'message': 'Incorrect password'}), 401
     except mysql.connector.Error as err:
-        return jsonify({'message': f'Error al hacer login: {err}'}), 500
+        return jsonify({'message': f'Login failed: {err}'}), 500
     finally:
         cursor.close()
         conn.close()
@@ -125,20 +124,19 @@ def get_favorites(user_id):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
-        # Se usa idusers en lugar de id
         query = "SELECT favorite_places FROM users WHERE idusers = %s"
         cursor.execute(query, (user_id,))
         result = cursor.fetchone()
 
         if not result:
-            return jsonify({'message': 'Usuario no encontrado'}), 404
+            return jsonify({'message': 'User not found'}), 404
         
         return jsonify({
             'user_id': user_id,
             'favorite_places': result['favorite_places'] or ""
         }), 200
     except mysql.connector.Error as err:
-        return jsonify({'message': f'Error al obtener favoritos: {err}'}), 500
+        return jsonify({'message': f'Error when getting favorites: {err}'}), 500
     finally:
         cursor.close()
         conn.close()
@@ -150,7 +148,7 @@ def update_favorites(user_id):
     new_place = data.get('new_place')
 
     if not new_place:
-        return jsonify({'message': 'No se proporcionó un lugar nuevo'}), 400
+        return jsonify({'message': 'No new city provided'}), 400
 
     try:
         conn = get_db_connection()
@@ -162,7 +160,7 @@ def update_favorites(user_id):
         result = cursor.fetchone()
 
         if not result:
-            return jsonify({'message': 'Usuario no encontrado'}), 404
+            return jsonify({'message': 'User not found'}), 404
         
         current_places = result['favorite_places'] or ""
         
@@ -176,11 +174,11 @@ def update_favorites(user_id):
         conn.commit()
 
         return jsonify({
-            'message': 'Lugares favoritos actualizados exitosamente',
+            'message': 'Favorite cities successfully updated',
             'favorite_places': updated_places
         }), 200
     except mysql.connector.Error as err:
-        return jsonify({'message': f'Error al actualizar favoritos: {err}'}), 500
+        return jsonify({'message': f'Error when updating favorites {err}'}), 500
     finally:
         cursor.close()
         conn.close()
